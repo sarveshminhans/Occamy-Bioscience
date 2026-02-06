@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: occamy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: occamy_db
+      POSTGRES_USER: occamy_user
+      POSTGRES_PASSWORD: occamy_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U occamy_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Application
+  web:
+    build: .
+    container_name: occamy-web
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=change-this-in-production-to-random-key
+      - DATABASE_URL=postgresql://occamy_user:occamy_password@db:5432/occamy_db
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./static/uploads:/app/static/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    command: gunicorn -w 4 -b 0.0.0.0:5000 app:app
+
+  # Redis (optional - for session management)
+  redis:
+    image: redis:7-alpine
+    container_name: occamy-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Nginx (optional - reverse proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: occamy-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/app/static:ro
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  redis_data:

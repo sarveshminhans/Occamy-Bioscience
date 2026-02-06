@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Dashboard - Occamy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding-bottom: 80px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .work-status {
+            background: white;
+            margin: 16px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        
+        .status-dot.active {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 8px 0;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .quick-actions {
+            margin: 16px;
+        }
+        
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-align: center;
+        }
+        
+        .action-card:active {
+            transform: scale(0.95);
+        }
+        
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .action-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+        
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .location-info {
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+        }
+        
+        @media (min-width: 768px) {
+            .stats-grid, .action-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐄 Field Operations</h1>
+        <p id="user-name">Field Officer Dashboard</p>
+    </div>
+    
+    <div class="work-status">
+        <div class="status-header">
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Not Started</span>
+            </div>
+            <button class="btn btn-secondary" onclick="window.location.href='/logout'">Logout</button>
+        </div>
+        
+        <div id="work-controls">
+            <button class="btn btn-primary" onclick="startWork()">Start Work Day</button>
+        </div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Meetings</div>
+            <div class="stat-value" id="stat-meetings">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Sales</div>
+            <div class="stat-value" id="stat-sales">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Samples</div>
+            <div class="stat-value" id="stat-samples">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Distance</div>
+            <div class="stat-value" id="stat-distance">0</div>
+        </div>
+    </div>
+    
+    <div class="quick-actions">
+        <h3 style="margin-bottom: 12px; color: #333;">Quick Actions</h3>
+        <div class="action-grid">
+            <div class="action-card" onclick="openMeetingModal()">
+                <div class="action-icon">🤝</div>
+                <div class="action-label">Log Meeting</div>
+            </div>
+            <div class="action-card" onclick="openSampleModal()">
+                <div class="action-icon">📦</div>
+                <div class="action-label">Sample Distribution</div>
+            </div>
+            <div class="action-card" onclick="openSaleModal()">
+                <div class="action-icon">💰</div>
+                <div class="action-label">Record Sale</div>
+            </div>
+            <div class="action-card" onclick="logCurrentLocation()">
+                <div class="action-icon">📍</div>
+                <div class="action-label">Log Location</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Meeting Modal -->
+    <div id="meeting-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Log Meeting</h2>
+            </div>
+            <form id="meeting-form">
+                <div class="form-group">
+                    <label>Meeting Type *</label>
+                    <select name="meeting_type" onchange="toggleMeetingFields(this.value)" required>
+                        <option value="">Select Type</option>
+                        <option value="one_on_one">One-on-One Meeting</option>
+                        <option value="group">Group Meeting</option>
+                    </select>
+                </div>
+                
+                <div id="one-on-one-fields" style="display: none;">
+                    <div class="form-group">
+                        <label>Person Name *</label>
+                        <input type="text" name="person_name">
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select name="person_category">
+                            <option value="">Select Category</option>
+                            <option value="Farmer">Farmer</option>
+                            <option value="Seller">Seller</option>
+                            <option value="Influencer">Influencer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="tel" name="contact_number">
+                    </div>
+                    <div class="form-group">
+                        <label>Business Potential</label>
+                        <input type="text" name="business_potential" placeholder="e.g., 5-10 kg, 200 kg">
+                    </div>
+                </div>
+                
+                <div id="group-fields" style="display: none;">
+                    <div class="form-group">
+                        <label>Village *</label>
+                        <input type="text" name="village">
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Attendees *</label>
+                        <input type="number" name="attendees_count">
+                    </div>
+                    <div class="form-group">
+                        <label>Meeting Type</label>
+                        <input type="text" name="group_meeting_type" placeholder="Training, Demo, etc.">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea name="notes"></textarea>
+                </div>
+                
+                <div class="location-info" id="meeting-location">
+                    Getting location...
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeMeetingModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Sample Distribution Modal -->
+    <div id="sample-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sample Distribution</h2>
+            </div>
+            <form id="sample-form">
+                <div class="form-group">
+                    <label>Recipient Name *</label>
+                    <input type="text" name="recipient_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Recipient Type</label>
+                    <select name="recipient_type">
+                        <option value="Farmer">Farmer</option>
+                        <option value="Distributor">Distributor</option>
+                        <option value="Seller">Seller</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Product Name *</label>
+                    <input type="text" name="product_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantity *</label>
+                    <input type="number" name="quantity" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Unit</label>
+                    <select name="unit">
+                        <option value="kg">Kilograms (kg)</option>
+                        <option value="g">Grams (g)</option>
+                        <option value="pieces">Pieces</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Purpose</label>
+                    <select name="purpose">
+                        <option value="trial">Trial</option>
+                        <option value="demo">Demo</option>
+                        <option value="follow-up">Follow-up</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea name="notes"></textarea>
+                </div>
+                
+                <div class="location-info" id="sample-location">
+                    Getting location...
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeSampleModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Sale Modal -->
+    <div id="sale-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Record Sale</h2>
+            </div>
+            <form id="sale-form">
+                <div class="form-group">
+                    <label>Sale Type *</label>
+                    <select name="sale_type" required>
+                        <option value="">Select Type</option>
+                        <option value="B2C">B2C (Direct to Farmer)</option>
+                        <option value="B2B">B2B (Distributor/Reseller)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Customer Name *</label>
+                    <input type="text" name="customer_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Customer Type</label>
+                    <select name="customer_type">
+                        <option value="Farmer">Farmer</option>
+                        <option value="Distributor">Distributor</option>
+                        <option value="Reseller">Reseller</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="tel" name="contact_number">
+                </div>
+                <div class="form-group">
+                    <label>Product SKU *</label>
+                    <input type="text" name="product_sku" required>
+                </div>
+                <div class="form-group">
+                    <label>Product Name *</label>
+                    <input type="text" name="product_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Pack Size</label>
+                    <input type="text" name="pack_size" placeholder="e.g., 1kg, 500g">
+                </div>
+                <div class="form-group">
+                    <label>Quantity *</label>
+                    <input type="number" name="quantity" step="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Unit Price (₹)</label>
+                    <input type="number" name="unit_price" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Total Amount (₹)</label>
+                    <input type="number" name="total_amount" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Mode</label>
+                    <select name="mode">
+                        <option value="direct">Direct</option>
+                        <option value="via_distributor">Via Distributor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="is_repeat_order" style="width: auto;">
+                        Repeat Order
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea name="notes"></textarea>
+                </div>
+                
+                <div class="location-info" id="sale-location">
+                    Getting location...
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeSaleModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <a href="#" class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="#" class="nav-item" onclick="openMeetingModal(); return false;">
+            <span class="nav-icon">🤝</span>
+            <span>Meetings</span>
+        </a>
+        <a href="#" class="nav-item" onclick="openSaleModal(); return false;">
+            <span class="nav-icon">💰</span>
+            <span>Sales</span>
+        </a>
+        <a href="#" class="nav-item" onclick="alert('Profile coming soon'); return false;">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+        </a>
+    </div>
+    
+    <script>
+        let currentLocation = null;
+        
+        // Check work status on load
+        checkWorkStatus();
+        loadStats();
+        
+        // Update location periodically
+        setInterval(updateLocation, 60000); // Every minute
+        
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    currentLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+                });
+            }
+        }
+        updateLocation();
+        
+        async function checkWorkStatus() {
+            try {
+                const response = await fetch('/api/field/worklog/status');
+                const data = await response.json();
+                
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                const workControls = document.getElementById('work-controls');
+                
+                if (data.status === 'started') {
+                    statusDot.classList.add('active');
+                    statusText.textContent = 'Work In Progress';
+                    workControls.innerHTML = '<button class="btn btn-danger" onclick="endWork()">End Work Day</button>';
+                } else if (data.status === 'ended') {
+                    statusDot.classList.remove('active');
+                    statusText.textContent = 'Work Completed Today';
+                    workControls.innerHTML = '<p style="text-align: center; color: #666;">Work day has ended</p>';
+                } else {
+                    statusDot.classList.remove('active');
+                    statusText.textContent = 'Not Started';
+                    workControls.innerHTML = '<button class="btn btn-primary" onclick="startWork()">Start Work Day</button>';
+                }
+            } catch (error) {
+                console.error('Error checking work status:', error);
+            }
+        }
+        
+        async function startWork() {
+            if (!currentLocation) {
+                alert('Please enable location services');
+                return;
+            }
+            
+            const odometer = prompt('Enter odometer reading (km):');
+            if (!odometer) return;
+            
+            try {
+                const response = await fetch('/api/field/worklog/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...currentLocation,
+                        odometer: parseFloat(odometer)
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Work day started!');
+                    checkWorkStatus();
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'Failed to start work');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        }
+        
+        async function endWork() {
+            if (!currentLocation) {
+                alert('Please enable location services');
+                return;
+            }
+            
+            const odometer = prompt('Enter odometer reading (km):');
+            if (!odometer) return;
+            
+            try {
+                const response = await fetch('/api/field/worklog/end', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...currentLocation,
+                        odometer: parseFloat(odometer)
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Work day ended!');
+                    checkWorkStatus();
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'Failed to end work');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/field/my-activities?days=7');
+                const data = await response.json();
+                
+                document.getElementById('stat-meetings').textContent = data.meetings;
+                document.getElementById('stat-sales').textContent = data.sales;
+                document.getElementById('stat-samples').textContent = data.samples;
+                document.getElementById('stat-distance').textContent = data.distance;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        function toggleMeetingFields(type) {
+            document.getElementById('one-on-one-fields').style.display = type === 'one_on_one' ? 'block' : 'none';
+            document.getElementById('group-fields').style.display = type === 'group' ? 'block' : 'none';
+        }
+        
+        function openMeetingModal() {
+            document.getElementById('meeting-modal').classList.add('active');
+            if (currentLocation) {
+                document.getElementById('meeting-location').textContent = `Location: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
+            }
+        }
+        
+        function closeMeetingModal() {
+            document.getElementById('meeting-modal').classList.remove('active');
+            document.getElementById('meeting-form').reset();
+        }
+        
+        function openSampleModal() {
+            document.getElementById('sample-modal').classList.add('active');
+            if (currentLocation) {
+                document.getElementById('sample-location').textContent = `Location: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
+            }
+        }
+        
+        function closeSampleModal() {
+            document.getElementById('sample-modal').classList.remove('active');
+            document.getElementById('sample-form').reset();
+        }
+        
+        function openSaleModal() {
+            document.getElementById('sale-modal').classList.add('active');
+            if (currentLocation) {
+                document.getElementById('sale-location').textContent = `Location: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
+            }
+        }
+        
+        function closeSaleModal() {
+            document.getElementById('sale-modal').classList.remove('active');
+            document.getElementById('sale-form').reset();
+        }
+        
+        async function logCurrentLocation() {
+            if (!currentLocation) {
+                alert('Location not available');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/field/location', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentLocation)
+                });
+                
+                if (response.ok) {
+                    alert('Location logged successfully!');
+                } else {
+                    alert('Failed to log location');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        }
+        
+        document.getElementById('meeting-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            if (currentLocation) {
+                data.latitude = currentLocation.latitude;
+                data.longitude = currentLocation.longitude;
+            }
+            
+            try {
+                const response = await fetch('/api/field/meeting', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert('Meeting logged successfully!');
+                    closeMeetingModal();
+                    loadStats();
+                } else {
+                    alert('Failed to log meeting');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        });
+        
+        document.getElementById('sample-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            if (currentLocation) {
+                data.latitude = currentLocation.latitude;
+                data.longitude = currentLocation.longitude;
+            }
+            
+            try {
+                const response = await fetch('/api/field/sample', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert('Sample distribution logged successfully!');
+                    closeSampleModal();
+                    loadStats();
+                } else {
+                    alert('Failed to log sample');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        });
+        
+        document.getElementById('sale-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            data.is_repeat_order = formData.get('is_repeat_order') === 'on';
+            
+            if (currentLocation) {
+                data.latitude = currentLocation.latitude;
+                data.longitude = currentLocation.longitude;
+            }
+            
+            try {
+                const response = await fetch('/api/field/sale', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert('Sale recorded successfully!');
+                    closeSaleModal();
+                    loadStats();
+                } else {
+                    alert('Failed to record sale');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
